@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { noop } from 'lodash';
 import { COUNTRIES, Country, CrossingInfo, extractCrossingInformation, infoUrlForCountry } from './police-hu';
+import {extractCrossingRawInformation} from './police-hu-raw';
 
 export type Crossings = {
   [K in Country]: CrossingInfo[];
@@ -21,6 +22,15 @@ async function fetchTrafficContent(country: Country): Promise<[Country, Crossing
   return infoQuery.then(
     (response): [Country, CrossingInfo[]] => [country, extractCrossingInformation(response.data)]
   );
+}
+//fetchTrafficRawContent must be written here. =>
+async function fetchTrafficRawContent(country: Country){
+  const url = ;
+  const DEFAULT_REQUEST_TIMEOUT = 10000;
+  const rawHTMLContent=
+  const infoQuery = axios.get(url, { timeout: DEFAULT_REQUEST_TIMEOUT });
+    return infoQuery.then(
+      (response) =>extractCrossingRawInformation(response.data));
 }
 
 export async function fetchCrossingInformation(): Promise<Crossings> {
