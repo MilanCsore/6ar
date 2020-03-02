@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { noop } from 'lodash';
 import { COUNTRIES, Country, CrossingInfo, extractCrossingInformation, infoUrlForCountry } from './police-hu';
-import {extractCrossingRawInformation} from './police-hu-raw';
+import fs from 'fs';
 
 export type Crossings = {
   [K in Country]: CrossingInfo[];
@@ -18,20 +18,32 @@ const EMPTY_CROSSINGS: Readonly<Crossings> = Object.freeze({
 async function fetchTrafficContent(country: Country): Promise<[Country, CrossingInfo[]]> {
   const url = infoUrlForCountry(country);
   const DEFAULT_REQUEST_TIMEOUT = 10000;
+  const currentTime = new Date().toISOString();
+  const rawFolderPath = `police_hu_date'/police_hu_raw_${currentTime}.html`;
   const infoQuery = axios.get(url, { timeout: DEFAULT_REQUEST_TIMEOUT });
-  return infoQuery.then(
-    (response): [Country, CrossingInfo[]] => [country, extractCrossingInformation(response.data)]
-  );
+
+  (function saveRawTrafficData(){
+    infoQuery
+      .then(response =>{
+        const rawHTMLData= response.data;
+        const saveToRawFolder= fs.writeFile(rawFolderPath,rawHTMLData,function(err) {
+          if(err) {
+            return console.log(err);
+          }
+          console.log('File saved successfully!');
+        });
+        return saveToRawFolder;
+
+      });
+  })();
+
+  return infoQuery
+    .then(
+      (response): [Country, CrossingInfo[]] => [country, extractCrossingInformation(response.data)]
+    );
 }
-//fetchTrafficRawContent must be written here. =>
-async function fetchTrafficRawContent(country: Country){
-  const url = ;
-  const DEFAULT_REQUEST_TIMEOUT = 10000;
-  const rawHTMLContent=
-  const infoQuery = axios.get(url, { timeout: DEFAULT_REQUEST_TIMEOUT });
-    return infoQuery.then(
-      (response) =>extractCrossingRawInformation(response.data));
-}
+
+
 
 export async function fetchCrossingInformation(): Promise<Crossings> {
   const infos = await Promise.all(COUNTRIES.map(fetchTrafficContent));
